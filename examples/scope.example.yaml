@@ -1,0 +1,104 @@
+# Azami — example Rules-of-Engagement (RoE) scope file
+# ---------------------------------------------------------------------------
+# This file defines everything Azami is allowed to do in one engagement.
+# The application boots LOCKED and refuses all active work until a file like
+# this is loaded, its signature verified, and the current time is inside the
+# authorized window. Exclusions always beat inclusions. There is no bypass.
+#
+# Sign the canonical bytes of this file (e.g. with minisign or GPG) and place
+# the detached signature next to it as `scope.example.yaml.sig`. Azami verifies
+# that signature against the authorizer public key/fingerprint below before it
+# will honor the scope.
+
+schema_version: 1
+
+engagement:
+  id: "ENG-2026-0142"
+  client_name: "Example Corp"
+  assessing_org: "Your Security Firm LLC"
+  # Reference to the signed statement of work / authorization contract that
+  # legally permits this testing. Azami records this in every audit entry.
+  authorization_ref: "SOW-2026-0142 / signed 2026-09-01"
+  authorizing_contact:
+    name: "Jane Authorizer"
+    role: "CISO, Example Corp"
+    email: "security-authorization@example.com"
+  emergency_stop_contact:
+    name: "Example Corp SOC"
+    phone: "+1-555-0100"
+    email: "soc@example.com"
+
+# Active modules refuse outside this window (UTC).
+time_window:
+  not_before: "2026-09-15T00:00:00Z"
+  not_after:  "2026-09-30T23:59:59Z"
+  # Optional recurring daily blackout (no active testing during business hours).
+  blackout_windows:
+    - days: ["Mon", "Tue", "Wed", "Thu", "Fri"]
+      start: "13:00Z"
+      end:   "21:00Z"
+
+# What may be touched, grouped into asset classes. Each class carries its own
+# allowed-actions grant. Azami resolves every target to its canonical form and
+# checks it here before any collector or tool runs.
+in_scope:
+  - name: "primary-web"
+    domains:
+      - "example.com"
+      - "*.example.com"        # wildcard allowed ONLY because the SOW grants it
+    urls:
+      - "https://portal.example.com"
+    allowed_actions:
+      passive: true            # DNS, WHOIS, cert transparency, public records
+      active_scan: true        # nmap, gobuster
+      active_testing: false    # hydra, john — NOT authorized for this class
+      exploitation: false      # metasploit exploit modules — NOT authorized
+
+  - name: "corp-netblock"
+    ip_ranges:
+      - "203.0.113.0/24"       # a block Example Corp owns (confirm via RDAP/ASN)
+    asns:
+      - "AS64500"
+    allowed_actions:
+      passive: true
+      active_scan: true
+      active_testing: false
+      exploitation: false
+
+  - name: "staging-app-authorized-for-cred-testing"
+    hosts:
+      - "staging-app.example.com"
+    allowed_actions:
+      passive: true
+      active_scan: true
+      active_testing: true     # hydra credential-strength testing explicitly OK here
+      exploitation: false
+
+# Exclusions ALWAYS win, even if an asset falls inside an in-scope range.
+out_of_scope:
+  hosts:
+    - "shared-neighbor.example.com"   # shared-hosting neighbor, not the client's
+    - "payments.example.com"          # third-party processor — never touch
+  ip_ranges:
+    - "203.0.113.200/29"              # carved out of corp-netblock by request
+  notes: >
+    Do not test anything hosted by third parties even if it resolves into an
+    in-scope range. When in doubt, treat as out of scope and ask the contact.
+
+# Global operational constraints. Tools inherit these caps.
+constraints:
+  max_scan_rate_pps: 500          # e.g. maps to nmap --max-rate
+  max_global_concurrency: 4       # simultaneous active jobs across the engagement
+  max_per_host_concurrency: 1
+  allowed_source_ips:             # traffic must originate from these (documented) IPs
+    - "198.51.100.10"
+  hydra:
+    max_threads: 4                # keep credential testing gentle; lockout-aware
+    stop_on_lockout: true
+
+# Integrity: Azami verifies the detached signature over this file using this key
+# before the scope is honored. A missing/invalid signature keeps the app locked.
+integrity:
+  signature_file: "scope.example.yaml.sig"
+  authorizer_pubkey_fingerprint: "RWQf6LRCGA9i53mkYtG0T0kEXAMPLEONLY0000000000"
+  signature_scheme: "minisign"    # or "gpg"
