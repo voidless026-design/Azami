@@ -11,20 +11,28 @@ via `AZAMI_BOOTSTRAP_ADMIN_PASSWORD`). Roles:
 - **operator** — run collectors/tools within the loaded scope.
 - **reviewer** — read-only (entities, audit, report).
 
-## 2. Prepare and load an authorization scope
+## 2. Start an engagement (authorize your targets)
 
-The console boots **locked**. Nothing runs until a scope is loaded.
+The console boots **locked**. Nothing runs until you authorize an engagement — no YAML required.
 
-1. Write the engagement scope from [`examples/scope.example.yaml`](../examples/scope.example.yaml).
-2. (Production) sign it:
-   ```bash
-   python scripts/sign_scope.py keygen --out-dir ./keys
-   # paste the printed public key into integrity.authorizer_pubkey, finalize the file, then:
-   python scripts/sign_scope.py sign --scope my-scope.yaml --private-key ./keys/authorizer.key
-   ```
-3. In the **locked** screen, paste the scope YAML (and the base64 signature in production), then
-   **Verify & load scope**. Production keeps `AZAMI_ALLOW_UNSIGNED_SCOPES=false`, so an unsigned or
-   tampered scope will not load.
+**Quick start (default):** on the locked screen, type the target(s) you're authorized to assess
+(one per line — domains, IPs, or CIDRs), tick what's allowed (passive is always on; active scan on
+by default; active testing / exploitation off by default), set how many days it's valid, and click
+**Authorize & start**. Azami builds the scope for you, gates every action to those targets, and
+records the authorization in the audit log.
+
+**Advanced / production (signed YAML):** expand *Advanced: paste a signed YAML scope* to load a
+full [`examples/scope.example.yaml`](../examples/scope.example.yaml)-style file. Production keeps
+`AZAMI_ALLOW_UNSIGNED_SCOPES=false`, so scopes must be signed:
+
+```bash
+python scripts/sign_scope.py keygen --out-dir ./keys
+# paste the printed public key into integrity.authorizer_pubkey, finalize the file, then:
+python scripts/sign_scope.py sign --scope my-scope.yaml --private-key ./keys/authorizer.key
+```
+
+Then paste the scope YAML + the base64 signature and **Verify & load YAML scope**. An unsigned or
+tampered scope will not load in production.
 
 The header now shows the engagement id, whether the signature verified, and the expiry. The
 **kill-switch** (lead only) cancels all jobs, revokes the scope, and re-locks the app at any time.

@@ -76,11 +76,9 @@ signed (see [`../scripts/sign_scope.py`](../scripts/sign_scope.py)).
 
 1. Open **http://127.0.0.1:5173** and sign in: **`admin` / `changeme`**
    (change via `AZAMI_BOOTSTRAP_ADMIN_PASSWORD`).
-2. The console boots **locked**. Paste [`examples/scope.example.yaml`](../examples/scope.example.yaml)
-   into the scope box and click **Verify & load scope**.
-   - ⚠️ That example has a **Mon–Fri 13:00–21:00 UTC blackout**, so *active* scans pause during those
-     hours (passive still works). To test active tools any time, remove the `blackout_windows:` block
-     or use your own scope.
+2. The console boots **locked**. On the **Start an engagement** form, type the target(s) you're
+   authorized to assess (e.g. `example.com`), tick what's allowed, and click **Authorize & start** —
+   no YAML required. (For a signed production scope, use *Advanced: paste a signed YAML scope*.)
 3. Explore: **OSINT** (passive collection), **Tools** (run nmap etc. with live output),
    **Playbooks**, **Wordlists**, **Audit**, **Report**. Full walkthrough in
    [`OPERATOR_GUIDE.md`](OPERATOR_GUIDE.md).

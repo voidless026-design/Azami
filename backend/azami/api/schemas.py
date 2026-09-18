@@ -34,6 +34,18 @@ class ScopeLoadRequest(BaseModel):
     signature_b64: str | None = None
 
 
+class QuickScopeRequest(BaseModel):
+    """Build + load a scope from a simple form — no YAML authoring required."""
+
+    targets: list[str]
+    engagement_id: str | None = None
+    client_name: str = "Self-authorized assessment"
+    allow_active_scan: bool = True
+    allow_active_testing: bool = False
+    allow_exploitation: bool = False
+    days_valid: int = 30
+
+
 class EngagementOut(BaseModel):
     id: str
     engagement_ref: str

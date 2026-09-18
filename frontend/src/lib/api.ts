@@ -59,9 +59,23 @@ export const api = {
     return data;
   },
 
+  me: () => request<{ id: string; username: string; role: string; active: boolean }>(
+    "GET",
+    "/api/auth/me",
+  ),
+
   status: () => request<Status>("GET", "/api/engagement/status"),
   loadScope: (scope_text: string, signature_b64?: string) =>
     request<Engagement>("POST", "/api/engagement/load", { scope_text, signature_b64 }),
+  quickstart: (body: {
+    targets: string[];
+    engagement_id?: string;
+    client_name?: string;
+    allow_active_scan?: boolean;
+    allow_active_testing?: boolean;
+    allow_exploitation?: boolean;
+    days_valid?: number;
+  }) => request<Engagement>("POST", "/api/engagement/quickstart", body),
   killSwitch: () => request<{ cancelled_jobs: number }>("POST", "/api/engagement/kill-switch"),
   scope: () => request<Record<string, unknown>>("GET", "/api/engagement/scope"),
   check: (target: string, action: string) =>

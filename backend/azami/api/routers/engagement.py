@@ -1,8 +1,10 @@
 """Engagement/scope endpoints: status, load scope, kill-switch, dry-run gate check."""
 from __future__ import annotations
 
-from datetime import datetime, timezone
+import ipaddress
+from datetime import datetime, timedelta, timezone
 
+import yaml
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -12,6 +14,7 @@ from azami.api.schemas import (
     DecisionOut,
     EngagementOut,
     KillSwitchOut,
+    QuickScopeRequest,
     ScopeLoadRequest,
     StatusOut,
 )
@@ -70,6 +73,88 @@ def load_scope(
         raise HTTPException(status_code=400, detail=f"signature error: {exc}") from exc
     except ScopeLoadError as exc:
         raise HTTPException(status_code=422, detail=f"scope error: {exc}") from exc
+    return _to_out(eng)
+
+
+def _build_quick_scope(body: QuickScopeRequest) -> dict:
+    """Turn a simple target list + toggles into a full scope object (no YAML authoring)."""
+    domains: list[str] = []
+    ip_ranges: list[str] = []
+    hosts: list[str] = []
+    for raw in body.targets:
+        t = raw.strip()
+        if not t:
+            continue
+        if "/" in t:
+            try:
+                ipaddress.ip_network(t, strict=False)
+                ip_ranges.append(t)
+                continue
+            except ValueError:
+                pass
+        try:
+            ipaddress.ip_address(t)
+            hosts.append(t)  # exact-IP match
+            continue
+        except ValueError:
+            pass
+        # Treat as a domain; also authorize its subdomains for convenience.
+        domains.append(t)
+        if not t.startswith("*."):
+            domains.append(f"*.{t}")
+
+    now = datetime.now(timezone.utc)
+    return {
+        "schema_version": 1,
+        "engagement": {
+            "id": body.engagement_id or f"QUICK-{now:%Y%m%d-%H%M%S}",
+            "client_name": body.client_name,
+            "assessing_org": "Azami operator",
+            "authorization_ref": "quickstart (operator-declared authorization)",
+        },
+        "time_window": {
+            "not_before": now.isoformat(),
+            "not_after": (now + timedelta(days=max(1, body.days_valid))).isoformat(),
+        },
+        "in_scope": [
+            {
+                "name": "targets",
+                "domains": domains,
+                "ip_ranges": ip_ranges,
+                "hosts": hosts,
+                "allowed_actions": {
+                    "passive": True,
+                    "active_scan": body.allow_active_scan,
+                    "active_testing": body.allow_active_testing,
+                    "exploitation": body.allow_exploitation,
+                },
+            }
+        ],
+    }
+
+
+@router.post("/quickstart", response_model=EngagementOut)
+def quickstart(
+    body: QuickScopeRequest,
+    db: Session = Depends(get_db),
+    operator: Operator = Depends(require_role("lead")),
+) -> EngagementOut:
+    """Authorize an engagement from a simple form (targets + toggles) — no YAML needed."""
+    if not any(t.strip() for t in body.targets):
+        raise HTTPException(status_code=422, detail="at least one target is required")
+    scope_text = yaml.safe_dump(_build_quick_scope(body), sort_keys=False)
+    try:
+        eng = manager.load(db, scope_text=scope_text, operator_id=operator.id)
+    except SignatureError as exc:
+        # Only reachable if unsigned scopes are disallowed (production).
+        raise HTTPException(
+            status_code=400,
+            detail=(
+                "quickstart builds an unsigned scope, which this deployment disallows "
+                "(AZAMI_ALLOW_UNSIGNED_SCOPES=false); load a signed scope instead. "
+                f"({exc})"
+            ),
+        ) from exc
     return _to_out(eng)
 
 

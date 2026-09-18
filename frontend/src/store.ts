@@ -14,18 +14,28 @@ interface AppState {
 }
 
 const STORAGE_KEY = "azami.token";
+const ROLE_KEY = "azami.role";
 
-function loadToken(): string | null {
+function loadStored(key: string): string | null {
   try {
-    return localStorage.getItem(STORAGE_KEY);
+    return localStorage.getItem(key);
   } catch {
     return null;
   }
 }
 
+function store(key: string, value: string | null) {
+  try {
+    if (value === null) localStorage.removeItem(key);
+    else localStorage.setItem(key, value);
+  } catch {
+    /* ignore */
+  }
+}
+
 export const useApp = create<AppState>((set, get) => ({
-  token: loadToken(),
-  role: null,
+  token: loadStored(STORAGE_KEY),
+  role: (loadStored(ROLE_KEY) as Role | null) ?? null,
   status: null,
   error: null,
 
@@ -33,27 +43,31 @@ export const useApp = create<AppState>((set, get) => ({
     set({ error: null });
     const { access_token, role } = await api.login(username, password);
     setToken(access_token);
-    try {
-      localStorage.setItem(STORAGE_KEY, access_token);
-    } catch {
-      /* ignore */
-    }
+    store(STORAGE_KEY, access_token);
+    store(ROLE_KEY, role);
     set({ token: access_token, role: role as Role });
     await get().refreshStatus();
   },
 
   logout: () => {
     setToken(null);
-    try {
-      localStorage.removeItem(STORAGE_KEY);
-    } catch {
-      /* ignore */
-    }
+    store(STORAGE_KEY, null);
+    store(ROLE_KEY, null);
     set({ token: null, role: null, status: null });
   },
 
   refreshStatus: async () => {
     try {
+      // Re-derive the role from the token so it survives a page reload.
+      if (!get().role) {
+        try {
+          const me = await api.me();
+          store(ROLE_KEY, me.role);
+          set({ role: me.role as Role });
+        } catch {
+          /* token may be invalid; status call below will surface it */
+        }
+      }
       const status = await api.status();
       set({ status });
     } catch (e) {
@@ -68,5 +82,5 @@ export const useApp = create<AppState>((set, get) => ({
 }));
 
 // Restore token into the api client on module load.
-const existing = loadToken();
+const existing = loadStored(STORAGE_KEY);
 if (existing) setToken(existing);
