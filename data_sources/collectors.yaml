@@ -1,0 +1,29 @@
+# Passive OSINT collector configuration. Each collector is scope-gated at runtime and
+# keyed to authorized assets / the client organization. API-key-bearing sources are
+# disabled until a key is provided via the environment (never commit keys here).
+collectors:
+  - name: dns
+    enabled: true
+    kind: passive
+    notes: A/AAAA/MX/NS/TXT/CNAME resolution via dnspython.
+
+  - name: rdap
+    enabled: true
+    kind: passive
+    notes: Registration data (RDAP) via the IANA bootstrap; confirms domain/IP ownership.
+
+  - name: crtsh
+    enabled: true
+    kind: passive
+    notes: Certificate transparency (crt.sh) -> additional in-scope hostnames/SANs.
+
+  - name: geoip
+    enabled: true
+    kind: passive
+    notes: IP -> city/region enrichment for the map view (public IP-geo endpoint).
+
+  - name: breach
+    enabled: false
+    kind: passive
+    requires_env: AZAMI_HIBP_API_KEY
+    notes: Breach-exposure reporting for in-scope corporate email domains. Report only.

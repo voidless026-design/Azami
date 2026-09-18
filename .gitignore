@@ -1,0 +1,36 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+backend/.azami_data/
+*.db
+.env
+
+# Node / frontend
+node_modules/
+dist/
+dist-ssr/
+frontend/src-tauri/target/
+*.local
+
+# OS / editors
+.DS_Store
+.idea/
+.vscode/
+*.log
+
+# Engagement data / secrets (never commit)
+*.key
+*.sig
+scope.local.*
+engagement-data/
+
+# Frontend build artifacts
+*.tsbuildinfo
+frontend/vite.config.js
+frontend/vite.config.d.ts
