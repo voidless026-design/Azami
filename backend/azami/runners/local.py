@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import asyncio
 
-from azami.runners.base import EventCallback, RunResult, Runner, ToolPlan, ToolUnavailable
+from azami.runners.base import EventCallback, Runner, RunResult, ToolPlan, ToolUnavailable
 
 
 class LocalSubprocessRunner(Runner):

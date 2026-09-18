@@ -37,7 +37,10 @@ BUILTIN: dict[str, Playbook] = {
             PlaybookStep("dns", "collect", "dns", "root"),
             PlaybookStep("crtsh", "collect", "crtsh", "root"),
             PlaybookStep("geoip", "collect", "geoip", "ips"),
-            PlaybookStep("portscan", "tool", "nmap", "ips", {"ports": "top1000", "scan_type": "version"}),
+            PlaybookStep(
+                "portscan", "tool", "nmap", "ips",
+                {"ports": "top1000", "scan_type": "version"},
+            ),
         ],
     ),
     "web_content_discovery": Playbook(

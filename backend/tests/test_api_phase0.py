@@ -52,7 +52,8 @@ def test_full_flow(client):
     assert client.get("/api/engagement/status").json()["locked"] is True
 
     # A gate check while locked is refused (423).
-    assert client.post("/api/engagement/check", json={"target": "example.com"}, headers=h).status_code == 423
+    r = client.post("/api/engagement/check", json={"target": "example.com"}, headers=h)
+    assert r.status_code == 423
 
     # Load a scope -> unlocks.
     r = client.post("/api/engagement/load", json={"scope_text": SCOPE_YAML}, headers=h)

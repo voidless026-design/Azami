@@ -78,7 +78,7 @@ async def run_collectors(
     )
     entity_ids.add(root.id)
 
-    for collector, result in zip(collectors, results):
+    for collector, result in zip(collectors, results, strict=False):
         if isinstance(result, Exception):
             log.warning("collector %s failed: %s", collector.name, result)
             summary.append({"collector": collector.name, "count": 0, "error": str(result)})

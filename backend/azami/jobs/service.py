@@ -20,7 +20,6 @@ from azami.runners.base import JobEvent, JobState, ToolPlan, ToolUnavailable
 from azami.runners.manager import get_runner
 from azami.scope.schema import INTRUSIVE_ACTIONS
 from azami.tools import registry as tool_registry
-from azami.tools.base import ToolParamError
 
 log = logging.getLogger("azami.jobs")
 

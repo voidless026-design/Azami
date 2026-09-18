@@ -61,7 +61,10 @@ def load_scope(
 ) -> EngagementOut:
     try:
         eng = manager.load(
-            db, scope_text=body.scope_text, operator_id=operator.id, signature_b64=body.signature_b64
+            db,
+            scope_text=body.scope_text,
+            operator_id=operator.id,
+            signature_b64=body.signature_b64,
         )
     except SignatureError as exc:
         raise HTTPException(status_code=400, detail=f"signature error: {exc}") from exc

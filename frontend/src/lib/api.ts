@@ -11,7 +11,9 @@ import type {
   WordlistStatus,
 } from "./types";
 
-const BASE = ""; // proxied to the backend in dev; same-origin in the packaged app.
+// Dev: "" -> vite proxies /api to the backend. Packaged desktop app: set
+// VITE_API_BASE=http://127.0.0.1:8099 at build time to reach the local backend.
+const BASE = (import.meta.env.VITE_API_BASE as string | undefined) ?? "";
 
 export class ApiError extends Error {
   status: number;
@@ -99,6 +101,11 @@ export const api = {
 };
 
 export function jobSocketUrl(jobId: string): string {
+  const q = `?token=${encodeURIComponent(token ?? "")}`;
+  if (BASE) {
+    const wsBase = BASE.replace(/^http/, "ws");
+    return `${wsBase}/api/ws/jobs/${jobId}${q}`;
+  }
   const proto = location.protocol === "https:" ? "wss" : "ws";
-  return `${proto}://${location.host}/api/ws/jobs/${jobId}?token=${encodeURIComponent(token ?? "")}`;
+  return `${proto}://${location.host}/api/ws/jobs/${jobId}${q}`;
 }

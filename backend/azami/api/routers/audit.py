@@ -68,6 +68,11 @@ def export(
     rows = db.execute(stmt).scalars().all()
     s = AuditLogger(db).verify_chain()
     return {
-        "chain": {"ok": s.ok, "length": s.length, "first_bad_seq": s.first_bad_seq, "detail": s.detail},
+        "chain": {
+            "ok": s.ok,
+            "length": s.length,
+            "first_bad_seq": s.first_bad_seq,
+            "detail": s.detail,
+        },
         "records": [_to_out(r).model_dump(mode="json") for r in rows],
     }

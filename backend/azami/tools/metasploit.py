@@ -40,7 +40,9 @@ class MetasploitWrapper(ToolWrapper):
         options = params.get("options", {})
         set_cmds = [f"set RHOSTS {target}"]
         for k, v in options.items():
-            if not re.match(r"^[A-Za-z0-9_]+$", str(k)) or not re.match(r"^[A-Za-z0-9_.:\-/]+$", str(v)):
+            key_ok = re.match(r"^[A-Za-z0-9_]+$", str(k))
+            val_ok = re.match(r"^[A-Za-z0-9_.:\-/]+$", str(v))
+            if not key_ok or not val_ok:
                 raise ToolParamError(f"invalid module option {k}={v}")
             set_cmds.append(f"set {k} {v}")
         resource = f"use {module}; " + "; ".join(set_cmds) + "; run; exit"

@@ -81,7 +81,7 @@ class JohnWrapper(ToolWrapper):
                 {
                     "title": f"{cracked} password hash(es) cracked",
                     "severity": "high",
-                    "description": "Hashes from the evidence store were recovered with the wordlist.",
+                    "description": "Hashes from the evidence store were recovered.",
                     "evidence": {"cracked": cracked},
                 }
             )

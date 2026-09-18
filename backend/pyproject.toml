@@ -48,6 +48,11 @@ testpaths = ["tests"]
 line-length = 100
 target-version = "py311"
 
+[tool.ruff.lint]
+select = ["E", "F", "I", "B"]
+# B008: FastAPI's Depends()/Query() default-arg pattern is idiomatic, not a bug.
+ignore = ["B008"]
+
 [build-system]
 requires = ["setuptools>=68"]
 build-backend = "setuptools.build_meta"

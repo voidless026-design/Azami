@@ -1,7 +1,7 @@
 """The most important suite in the project: prove the gate lets in only what it should."""
 from __future__ import annotations
 
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timezone
 
 import pytest
 
@@ -25,7 +25,11 @@ def make_scope() -> Scope:
                 "not_before": "2026-09-15T00:00:00Z",
                 "not_after": "2026-09-30T23:59:59Z",
                 "blackout_windows": [
-                    {"days": ["Mon", "Tue", "Wed", "Thu", "Fri"], "start": "13:00Z", "end": "21:00Z"}
+                    {
+                        "days": ["Mon", "Tue", "Wed", "Thu", "Fri"],
+                        "start": "13:00Z",
+                        "end": "21:00Z",
+                    }
                 ],
             },
             "in_scope": [

@@ -8,7 +8,7 @@ from __future__ import annotations
 import asyncio
 import shutil
 
-from azami.runners.base import EventCallback, RunResult, Runner, ToolPlan, ToolUnavailable
+from azami.runners.base import EventCallback, Runner, RunResult, ToolPlan, ToolUnavailable
 
 
 class DockerRunner(Runner):
@@ -33,7 +33,9 @@ class DockerRunner(Runner):
         ]
         for host_path, container_path in plan.read_only_mounts.items():
             argv += ["-v", f"{host_path}:{container_path}:ro"]
-        argv += [plan.image, *plan.argv]
+        # Pin the entrypoint to the tool binary so this works whatever the base
+        # image's default entrypoint is; pass the remaining args as the command.
+        argv += ["--entrypoint", plan.argv[0], plan.image, *plan.argv[1:]]
         return argv
 
     async def run(self, plan: ToolPlan, on_event: EventCallback) -> RunResult:

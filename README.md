@@ -46,24 +46,59 @@ Additional docs referenced by the spec (`ARCHITECTURE.md`, `DATA_MODEL.md`, `API
 
 ## Project status
 
-Early scaffolding. The specification and authorization model are defined; implementation follows
-the phased roadmap in the development prompt, starting with **Phase 0 (the scope engine + audit
-log)** before any recon feature.
+All phases of the roadmap are implemented and tested end to end:
 
-## Building the app (planned quick start)
+- **Backend** (Python / FastAPI): the scope engine + tamper-evident audit log, operator auth/RBAC,
+  passive OSINT collectors + entity model, the tool-integration layer (runners + job state machine +
+  WebSocket streaming) with six gated tool wrappers, the wordlist manager, the playbook engine, and
+  reporting. 46 tests pass (the scope-decision matrix, signature verification, audit chain/tamper
+  detection, job lifecycle, and playbook re-gating).
+- **Frontend** (React / Vite / TypeScript / Tailwind): the boot-locked scope gate, dashboard,
+  live-streaming tools panel, OSINT + relationship graph, playbooks, wordlists, audit, and report
+  screens. Verified with a live browser run against the backend.
+- **Infra**: backend Dockerfile, `deploy/docker-compose.yml`, per-tool runner Dockerfiles, Tauri
+  packaging config, and GitHub Actions CI.
 
-Once Phase 0+ lands, the flow will be:
+## Quick start (local dev)
+
+The backend defaults to zero external services (SQLite + in-process job execution), so it runs
+immediately. One command brings up both tiers:
 
 ```bash
-# Backend stack (API + workers + Postgres + Redis + tool runners)
-cd deploy && docker compose up -d
-
-# Desktop app (dev)
-cd frontend && npm install && npm run tauri dev
+./scripts/dev.sh          # backend on :8099 + frontend dev server on :5173
 ```
 
-Detailed setup — Python/Node versions, Docker requirements, and how to build signed installers —
-lives in the development prompt (§16) and will be expanded in `OPERATOR_GUIDE.md`.
+Or run each tier manually:
+
+```bash
+# Backend
+cd backend && python3 -m venv .venv && source .venv/bin/activate
+pip install -e ".[dev]"
+AZAMI_ALLOW_UNSIGNED_SCOPES=true uvicorn azami.main:app --port 8099 --reload
+
+# Frontend (proxies /api to the backend)
+cd frontend && npm install && npm run dev   # http://127.0.0.1:5173
+```
+
+Sign in with `admin` / `changeme` (change via `AZAMI_BOOTSTRAP_ADMIN_PASSWORD`), then load a scope
+(paste [`examples/scope.example.yaml`](examples/scope.example.yaml)). Run the tests with
+`cd backend && pytest -q`. See [`docs/OPERATOR_GUIDE.md`](docs/OPERATOR_GUIDE.md) for the full flow.
+
+## Production
+
+```bash
+# Backend stack: API + Postgres + Redis (tool runners are launched per-job as containers)
+docker compose -f deploy/docker-compose.yml up -d --build
+
+# Build the tool-runner images the Docker runner uses
+for t in nmap gobuster hydra john metasploit tcpdump; do docker build -t azami/$t:latest runners/$t; done
+
+# Desktop installer (Tauri) — add app icons first (frontend/src-tauri/icons/README.md)
+cd frontend && VITE_API_BASE=http://127.0.0.1:8099 npm run tauri build
+```
+
+Production keeps `AZAMI_ALLOW_UNSIGNED_SCOPES=false` (scopes must be signed) and uses Postgres +
+Redis. Detailed setup and packaging live in the development prompt (§16).
 
 ## Legal & acceptable use
 

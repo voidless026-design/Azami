@@ -69,7 +69,8 @@ class RDAPCollector(Collector):
             fields["registrant_org"] = org
             records.append(RawRecord(EntityType.ORGANIZATION, org, {"name": org, "via": "rdap"}))
         etype = EntityType.DOMAIN if kind == "domain" else EntityType.IP
-        records.insert(0, RawRecord(etype, value, {("domain" if kind == "domain" else "ip"): value, **fields}))
+        key = "domain" if kind == "domain" else "ip"
+        records.insert(0, RawRecord(etype, value, {key: value, **fields}))
         return records
 
 
@@ -104,7 +105,9 @@ class CrtShCollector(Collector):
                 name = name.strip().lstrip("*.").lower()
                 if name and "@" not in name and name.endswith(value):
                     hosts.add(name)
-        records = [RawRecord(EntityType.HOST, h, {"host": h, "via": "crtsh"}) for h in sorted(hosts)]
+        records = [
+            RawRecord(EntityType.HOST, h, {"host": h, "via": "crtsh"}) for h in sorted(hosts)
+        ]
         records.insert(
             0, RawRecord(EntityType.DOMAIN, value, {"domain": value, "subdomains": sorted(hosts)})
         )
@@ -135,7 +138,9 @@ class GeoIPCollector(Collector):
         }
         loc_key = f"{loc.get('city')},{loc.get('region')},{loc.get('country')}"
         return [
-            RawRecord(EntityType.IP, value, {"ip": value, "geo": loc_key, "asn_org": loc.get("org")}),
+            RawRecord(
+                EntityType.IP, value, {"ip": value, "geo": loc_key, "asn_org": loc.get("org")}
+            ),
             RawRecord(EntityType.LOCATION, loc_key, loc),
         ]
 

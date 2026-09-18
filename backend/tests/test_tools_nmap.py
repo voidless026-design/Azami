@@ -34,7 +34,9 @@ def test_plan_defaults(nmap):
 
 
 def test_plan_explicit_ports_and_rate(nmap):
-    plan = nmap.plan("example.com", {"ports": "80,443", "scan_type": "connect"}, {"max_scan_rate_pps": 500})
+    plan = nmap.plan(
+        "example.com", {"ports": "80,443", "scan_type": "connect"}, {"max_scan_rate_pps": 500}
+    )
     assert "-p" in plan.argv and "80,443" in plan.argv
     assert plan.argv[1] == "-sT"
     i = plan.argv.index("--max-rate")
