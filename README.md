@@ -30,7 +30,8 @@ defined scope, and organizations assessing their own assets.
 
 | Doc | What's in it |
 |---|---|
-| [`docs/DEVELOPMENT_PROMPT.md`](docs/DEVELOPMENT_PROMPT.md) | The complete end-to-end build spec: stack, architecture, backend, frontend, data model, packaging, MVP-first roadmap, and a coverage map of the original blueprint. **Start here.** |
+| [`docs/INSTALL.md`](docs/INSTALL.md) | How to download, run, and build Azami (dev, Docker, and desktop installer). **Start here to run it.** |
+| [`docs/DEVELOPMENT_PROMPT.md`](docs/DEVELOPMENT_PROMPT.md) | The complete end-to-end build spec: stack, architecture, backend, frontend, data model, packaging, MVP-first roadmap, and a coverage map of the original blueprint. |
 | [`docs/AUTHORIZATION_MODEL.md`](docs/AUTHORIZATION_MODEL.md) | The scope / RoE model, the decision function, the kill-switch, and the tamper-evident audit log. |
 | [`examples/scope.example.yaml`](examples/scope.example.yaml) | A complete, annotated authorization scope file. |
 
