@@ -1,0 +1,166 @@
+# =============================================================================
+# ILLUSTRATIVE SAMPLE — FICTIONAL DATA. NOT A LIVE AUTHORIZATION.
+# =============================================================================
+# Every organization, person, domain, and address below is invented. Network
+# ranges are documentation-reserved (RFC 5737 / RFC 1918) and route to no one.
+# Phone numbers use the 555-01xx block reserved for fiction.
+#
+# This shows what a COMPLETED scope looks like. Three things are intentionally
+# left in their safe state, because only a real authorizing human can set them
+# for a real engagement:
+#   - authorization.asset_ownership_verified  (false)
+#   - signatures.*.signed                      (false)
+#   - rules_of_engagement.high_impact_techniques.* (all false)
+# Do not treat a filled-in copy of this file as permission to test anything.
+# =============================================================================
+
+apiVersion: roe/v1
+kind: EngagementScope
+
+metadata:
+  engagement_name: "Northwind Labs — External Network & Web Application Assessment"
+  engagement_id: "AZ-2026-014"
+  version: "1.0.0-sample"
+  status: "draft"                 # a real engagement moves to 'approved' only after sign-off
+  classification: "CONFIDENTIAL"
+  created: "2026-09-18"
+  last_updated: "2026-09-18"
+
+parties:
+  client:
+    organization: "Northwind Labs, Inc. (FICTIONAL sample entity)"
+    authorizing_contact:
+      name: "Jordan Avery"
+      title: "Chief Information Security Officer"
+      email: "jordan.avery@northwind.example"
+      phone: "+1-555-0142"
+  provider:
+    organization: "Azami Security (sample provider)"
+    engagement_lead:
+      name: "Sam Okoye"
+      email: "sam.okoye@azami.example"
+      phone: "+1-555-0175"
+    testers:
+      - name: "Riley Chen"
+        source_ips: ["203.0.113.10/32"]   # RFC 5737 documentation range
+
+authorization:
+  legal_basis: "MSA-2026-03 / SOW-14 (sample references)"
+  authorization_letter: "LOA-2026-014 — signed letter to be attached by the client; not included in this sample"
+  asset_ownership_verified: false   # only the client can set true, for assets they demonstrably control
+  third_party_authorizations:
+    - provider: "AWS"
+      required: "yes"
+      reference: "Pending client-submitted AWS penetration testing acknowledgement"
+  scope_change_process: >-
+    Any change to in-scope assets, techniques, or windows requires written
+    approval from both the client authorizing contact and the provider
+    engagement lead, and a version bump to this document, before it takes effect.
+
+targets:
+  in_scope:
+    domains:
+      - "example.com"
+      - "www.example.com"
+      - "shop.example.com"
+    ip_ranges:
+      - "192.0.2.0/24"      # RFC 5737 documentation range (stands in for client-owned space)
+      - "198.51.100.0/24"   # RFC 5737 documentation range
+    web_applications:
+      - name: "Northwind Storefront"
+        url: "https://shop.example.com"
+        environment: "staging"
+      - name: "Northwind Customer Portal"
+        url: "https://portal.example.com"
+        environment: "staging"
+    apis:
+      - "https://api.example.com/v1"
+    cloud_accounts:
+      - provider: "AWS"
+        account_id: "0000-0000-0000 (sample)"
+        scope_note: "Only the 'sandbox' VPC; production accounts are out of scope"
+  out_of_scope:
+    - "Any asset not listed in targets.in_scope"
+    - "Production databases and the production cardholder-data environment"
+    - "Third-party / partner infrastructure not owned by Northwind Labs"
+    - "Employee personal devices and personal accounts"
+    - "203.0.113.0/24 (reserved here for tester source addresses)"
+
+rules_of_engagement:
+  authorized_techniques:
+    - "Reconnaissance and enumeration of in-scope assets"
+    - "Automated and manual vulnerability scanning (rate-limited)"
+    - "Exploitation to confirm findings, minimal necessary to prove impact"
+    - "Post-exploitation limited to proof-of-access (a benign marker file only)"
+    - "Web application testing (authn/authz, injection, business-logic flaws)"
+  # High-impact techniques stay OFF. Enabling any one requires the client
+  # authorizing contact's explicit written approval and a version bump.
+  high_impact_techniques:
+    denial_of_service: false
+    social_engineering_of_staff: false
+    physical_intrusion: false
+    destructive_actions: false
+    lateral_movement_beyond_scope: false
+    persistence_mechanisms: false
+    data_exfiltration_of_real_data: false
+  prohibited:
+    - "Testing any asset not listed in targets.in_scope"
+    - "Exfiltrating, copying, or exposing real customer/personal data"
+    - "Modifying or destroying data or systems"
+    - "Actions that knowingly degrade service for real users"
+    - "Pivoting to third-party or partner networks"
+    - "Retaining client data after the engagement (see data_handling)"
+
+  testing_window:
+    start: "2026-10-06T09:00:00Z"
+    end: "2026-10-17T21:00:00Z"
+    permitted_hours: "09:00-17:00 client local (America/New_York), business days only"
+    blackout_periods:
+      - "2026-10-13 (client month-end financial close)"
+    rate_limits: "No more than 20 req/s against any single production endpoint"
+
+data_handling:
+  storage: "Findings and evidence stored in the provider's encrypted engagement vault"
+  encryption: "AES-256 at rest, TLS 1.2+ in transit"
+  pii_policy: >-
+    If real personal data is encountered, stop, do not copy it, record only
+    what is needed to describe the finding, and notify the client contact.
+  retention: "90 days after report delivery, then securely destroyed"
+  destruction: "Cryptographic erase of the engagement vault; written confirmation to client"
+
+communications:
+  status_updates: "Daily end-of-day summary during the testing window"
+  channel: "Dedicated Signal group + PGP-encrypted email"
+  critical_finding_disclosure: >-
+    Findings indicating active compromise or imminent risk are reported to the
+    client authorizing contact within 4 hours of discovery, out of band.
+  emergency_stop:
+    trigger_phrase: "NORTHWIND HALT"
+    contacts:
+      - name: "Jordan Avery (client, 24/7)"
+        phone: "+1-555-0142"
+      - name: "Sam Okoye (provider, 24/7)"
+        phone: "+1-555-0175"
+  deconfliction: >-
+    If Northwind's SOC detects the testing, they contact the provider
+    engagement lead to confirm authorization rather than initiating incident
+    response against the testers.
+
+reporting:
+  deliverables:
+    - "Executive summary"
+    - "Technical findings with CVSS severity, evidence, and remediation guidance"
+    - "Retest of remediated findings"
+  format: "PDF report plus machine-readable findings export (JSON)"
+  due: "2026-10-24"
+
+signatures:
+  client_authorization:
+    signed: false                 # requires a real signer with authority over the assets
+    name: "Jordan Avery"
+    title: "Chief Information Security Officer"
+    date: ""
+  provider_acceptance:
+    signed: false
+    name: "Sam Okoye"
+    date: ""
