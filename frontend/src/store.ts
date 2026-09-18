@@ -69,9 +69,9 @@ export const useApp = create<AppState>((set, get) => ({
         }
       }
       const status = await api.status();
-      set({ status });
-    } catch (e) {
-      set({ error: String(e) });
+      set({ status, error: null });
+    } catch {
+      set({ error: "Can't reach the Azami backend on port 8099. Is it running?" });
     }
   },
 

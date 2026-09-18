@@ -23,7 +23,7 @@ const TABS = [
 type Tab = (typeof TABS)[number];
 
 export default function App() {
-  const { token, status, role, refreshStatus, logout, killSwitch } = useApp();
+  const { token, status, role, error, refreshStatus, logout, killSwitch } = useApp();
   const [tab, setTab] = useState<Tab>("Dashboard");
 
   useEffect(() => {
@@ -31,7 +31,7 @@ export default function App() {
   }, [token, refreshStatus]);
 
   if (!token) return <Login />;
-  if (!status) return <Splash text="Connecting to backend…" />;
+  if (!status) return <Connecting error={error} onRetry={refreshStatus} />;
 
   const locked = status.locked;
 
@@ -143,6 +143,35 @@ function Header({
   );
 }
 
-function Splash({ text }: { text: string }) {
-  return <div className="flex min-h-screen items-center justify-center text-slate-500">{text}</div>;
+function Connecting({ error, onRetry }: { error: string | null; onRetry: () => void }) {
+  // Auto-retry every 3s so the app recovers on its own once the backend comes up.
+  useEffect(() => {
+    const id = setInterval(onRetry, 3000);
+    return () => clearInterval(id);
+  }, [onRetry]);
+
+  if (!error) {
+    return (
+      <div className="flex min-h-screen items-center justify-center text-slate-500">
+        Connecting to backend…
+      </div>
+    );
+  }
+  return (
+    <div className="flex min-h-screen items-center justify-center p-4">
+      <div className="max-w-md space-y-3 rounded-xl border border-amber-500/30 bg-amber-500/5 p-6 text-center">
+        <div className="text-lg font-semibold text-amber-300">Backend not reachable</div>
+        <p className="text-sm text-slate-400">{error}</p>
+        <pre className="rounded bg-surface-0 p-3 text-left text-xs text-slate-300">
+{`cd backend
+source .venv/bin/activate
+uvicorn azami.main:app --port 8099 --reload`}
+        </pre>
+        <p className="text-xs text-slate-500">Retrying automatically…</p>
+        <Button variant="primary" onClick={onRetry}>
+          Retry now
+        </Button>
+      </div>
+    </div>
+  );
 }
