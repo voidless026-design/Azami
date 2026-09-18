@@ -1,0 +1,185 @@
+# =============================================================================
+# Penetration Test / Red Team Engagement Scope & Rules of Engagement (RoE)
+# =============================================================================
+# This is a TEMPLATE. It is not authorization to do anything.
+#
+# No testing may begin until:
+#   1. Every <PLACEHOLDER> below is replaced with real, agreed values.
+#   2. An authorized signer for the CLIENT has signed the authorization block.
+#   3. The provider's engagement lead has countersigned.
+#   4. Any third-party infrastructure owners (cloud, hosting, SaaS) have been
+#      notified/approved where their terms require it.
+#
+# Testing must stay strictly within the assets, techniques, and time windows
+# defined here. Anything not explicitly in scope is out of scope.
+# =============================================================================
+
+apiVersion: roe/v1
+kind: EngagementScope
+
+metadata:
+  engagement_name: "<Engagement name, e.g. Azami Q4 External Assessment>"
+  engagement_id: "<Internal tracking ID, e.g. AZ-2025-014>"
+  version: "0.1.0-draft"          # bump on every signed revision
+  status: "draft"                 # draft | approved | active | closed
+  classification: "CONFIDENTIAL"  # handling label for this document
+  created: "<YYYY-MM-DD>"
+  last_updated: "<YYYY-MM-DD>"
+
+parties:
+  client:
+    organization: "<Client legal entity name>"
+    authorizing_contact:
+      name: "<Name of person authorized to approve testing of these assets>"
+      title: "<Title, e.g. CISO>"
+      email: "<email>"
+      phone: "<24/7 reachable number>"
+    # The client must be able to demonstrate ownership of, or authority over,
+    # every asset listed in scope.targets.in_scope.
+  provider:
+    organization: "<Testing firm / internal red team>"
+    engagement_lead:
+      name: "<Lead consultant / operator>"
+      email: "<email>"
+      phone: "<number>"
+    testers:
+      - name: "<Tester name>"
+        source_ips: ["<CIDR the tester will originate from>"]  # for allow-listing / deconfliction
+
+# -----------------------------------------------------------------------------
+# Legal authorization. Testing without this in place may be a crime.
+# -----------------------------------------------------------------------------
+authorization:
+  legal_basis: "<Master Services Agreement + Statement of Work reference, e.g. MSA-2025-07 / SOW-14>"
+  authorization_letter: "<Path or reference to the signed authorization / 'get out of jail' letter>"
+  asset_ownership_verified: false   # set true only when ownership/authority is confirmed
+  third_party_authorizations:
+    # Some providers require prior notice or approval before testing hosted assets.
+    - provider: "<e.g. AWS>"
+      required: "<yes/no>"
+      reference: "<ticket / approval reference, or N/A>"
+  scope_change_process: >-
+    Any change to in-scope assets, techniques, or windows requires written
+    approval from both the client authorizing contact and the provider
+    engagement lead, and a version bump to this document, before it takes effect.
+
+# -----------------------------------------------------------------------------
+# What may be tested, and what may not.
+# -----------------------------------------------------------------------------
+targets:
+  in_scope:
+    domains:
+      - "<example.com and explicitly named subdomains>"
+    ip_ranges:
+      - "<CIDR ranges the client owns, e.g. 198.51.100.0/24>"
+    web_applications:
+      - name: "<App name>"
+        url: "<https://app.example.com>"
+        environment: "<staging | production — state which>"
+    apis:
+      - "<https://api.example.com/v1>"
+    cloud_accounts:
+      - provider: "<AWS/GCP/Azure>"
+        account_id: "<account/subscription id>"
+        scope_note: "<which resources, e.g. only the 'sandbox' VPC>"
+  out_of_scope:
+    # Explicitly excluded. When in doubt, it is out of scope.
+    - "<Any asset not listed above>"
+    - "<Third-party / partner infrastructure not owned by the client>"
+    - "<Production payment processing / cardholder data environment, unless separately authorized>"
+    - "<Employee personal devices and personal accounts>"
+
+# -----------------------------------------------------------------------------
+# Rules of engagement: how testing is conducted.
+# -----------------------------------------------------------------------------
+rules_of_engagement:
+  authorized_techniques:
+    - "Reconnaissance and enumeration of in-scope assets"
+    - "Automated and manual vulnerability scanning (rate-limited)"
+    - "Exploitation to confirm findings, minimal necessary to prove impact"
+    - "Post-exploitation limited to proof-of-access (e.g. a benign marker file)"
+    - "Web application testing (authns/authz, injection, logic flaws)"
+  # High-impact techniques are OPT-IN. Each defaults to false and must be
+  # explicitly enabled in writing by the client authorizing contact.
+  high_impact_techniques:
+    denial_of_service: false          # load/DoS testing
+    social_engineering_of_staff: false # phishing/vishing of real employees
+    physical_intrusion: false          # on-site physical testing
+    destructive_actions: false         # anything that deletes/alters client data
+    lateral_movement_beyond_scope: false
+    persistence_mechanisms: false
+    data_exfiltration_of_real_data: false  # use synthetic markers, never real PII/secrets
+  prohibited:
+    - "Testing any asset not listed in targets.in_scope"
+    - "Exfiltrating, copying, or exposing real customer/personal data"
+    - "Modifying or destroying data or systems (unless destructive_actions enabled)"
+    - "Actions that knowingly degrade service for real users (unless DoS enabled)"
+    - "Pivoting to third-party or partner networks"
+    - "Retaining client data after the engagement (see data_handling)"
+
+  testing_window:
+    start: "<YYYY-MM-DDTHH:MM:SSZ>"
+    end: "<YYYY-MM-DDTHH:MM:SSZ>"
+    permitted_hours: "<e.g. 09:00-17:00 client local, business days only | 24x7>"
+    blackout_periods:
+      - "<Dates/times testing must NOT occur, e.g. month-end close>"
+    rate_limits: "<e.g. no more than N req/s against production endpoints>"
+
+# -----------------------------------------------------------------------------
+# How data gathered during testing is handled.
+# -----------------------------------------------------------------------------
+data_handling:
+  storage: "<Encrypted at rest; where findings/evidence are stored>"
+  encryption: "<e.g. AES-256 at rest, TLS in transit>"
+  pii_policy: >-
+    If real personal data is encountered, stop, do not copy it, record only
+    what is needed to describe the finding, and notify the client contact.
+  retention: "<How long evidence is kept, e.g. 90 days post-report>"
+  destruction: "<How/when data is securely destroyed; confirmation to client>"
+
+# -----------------------------------------------------------------------------
+# Communication, escalation, and emergency stop.
+# -----------------------------------------------------------------------------
+communications:
+  status_updates: "<cadence, e.g. daily EOD summary>"
+  channel: "<secure channel, e.g. Signal group / encrypted email>"
+  critical_finding_disclosure: >-
+    Findings that indicate active compromise or imminent risk are reported to
+    the client authorizing contact within <e.g. 4> hours of discovery, out of band.
+  emergency_stop:
+    # Either party can halt testing immediately, no reason required.
+    trigger_phrase: "<agreed stop phrase>"
+    contacts:
+      - name: "<Client 24/7 contact>"
+        phone: "<number>"
+      - name: "<Provider 24/7 contact>"
+        phone: "<number>"
+  deconfliction: >-
+    If the client's SOC detects the testing and needs to confirm it is
+    authorized, they contact the provider engagement lead to deconflict
+    rather than initiating incident response against the testers.
+
+# -----------------------------------------------------------------------------
+# Deliverables.
+# -----------------------------------------------------------------------------
+reporting:
+  deliverables:
+    - "Executive summary"
+    - "Technical findings with severity (CVSS), evidence, and remediation guidance"
+    - "Retest of remediated findings (if in SOW)"
+  format: "<PDF report + findings export>"
+  due: "<YYYY-MM-DD, business days after testing ends>"
+
+# -----------------------------------------------------------------------------
+# Sign-off. Testing is authorized ONLY when both blocks are signed.
+# -----------------------------------------------------------------------------
+signatures:
+  client_authorization:
+    signed: false
+    name: "<Signer name>"
+    title: "<Signer title>"
+    date: "<YYYY-MM-DD>"
+  provider_acceptance:
+    signed: false
+    name: "<Engagement lead name>"
+    date: "<YYYY-MM-DD>"
