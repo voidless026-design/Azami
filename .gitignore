@@ -29,3 +29,8 @@ frontend/src-tauri/target/
 *.sig
 scope.local.*
 engagement-data/
+
+# Frontend build artifacts
+*.tsbuildinfo
+frontend/vite.config.js
+frontend/vite.config.d.ts
