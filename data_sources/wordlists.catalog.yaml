@@ -1,0 +1,33 @@
+# Managed wordlist catalog. The WordlistManager reads this to list/download lists.
+# Lists are fetched on explicit request (never silently), checksum-verified, versioned,
+# and mounted read-only into tool runners. Only include lists whose license permits use.
+#
+# checksum: optional sha256 of the downloaded file; when present, a mismatch aborts install.
+lists:
+  - name: seclists-common-web-content
+    category: web-content
+    source_url: https://raw.githubusercontent.com/danielmiessler/SecLists/master/Discovery/Web-Content/common.txt
+    license: MIT
+    version: master
+    checksum: null
+
+  - name: seclists-subdomains-top1million-5000
+    category: subdomains
+    source_url: https://raw.githubusercontent.com/danielmiessler/SecLists/master/Discovery/DNS/subdomains-top1million-5000.txt
+    license: MIT
+    version: master
+    checksum: null
+
+  - name: seclists-common-passwords-10k
+    category: credentials
+    source_url: https://raw.githubusercontent.com/danielmiessler/SecLists/master/Passwords/Common-Credentials/10-million-password-list-top-10000.txt
+    license: MIT
+    version: master
+    checksum: null
+
+  - name: seclists-common-usernames
+    category: credentials
+    source_url: https://raw.githubusercontent.com/danielmiessler/SecLists/master/Usernames/top-usernames-shortlist.txt
+    license: MIT
+    version: master
+    checksum: null
