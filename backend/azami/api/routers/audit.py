@@ -53,3 +53,21 @@ def verify(
 ) -> ChainStatusOut:
     s = AuditLogger(db).verify_chain()
     return ChainStatusOut(ok=s.ok, length=s.length, first_bad_seq=s.first_bad_seq, detail=s.detail)
+
+
+@router.get("/export")
+def export(
+    db: Session = Depends(get_db),
+    _: Operator = Depends(require_role("reviewer")),
+    engagement_id: str | None = None,
+) -> dict:
+    """Full audit trail (chain order) + integrity status, for the report appendix."""
+    stmt = select(AuditRecord).order_by(AuditRecord.seq.asc())
+    if engagement_id:
+        stmt = stmt.where(AuditRecord.engagement_id == engagement_id)
+    rows = db.execute(stmt).scalars().all()
+    s = AuditLogger(db).verify_chain()
+    return {
+        "chain": {"ok": s.ok, "length": s.length, "first_bad_seq": s.first_bad_seq, "detail": s.detail},
+        "records": [_to_out(r).model_dump(mode="json") for r in rows],
+    }
